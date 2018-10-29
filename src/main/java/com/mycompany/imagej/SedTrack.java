@@ -10,6 +10,7 @@ package com.mycompany.imagej;
 
 import ij.IJ;
 import ij.ImagePlus;
+import ij.ImageJ;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 
