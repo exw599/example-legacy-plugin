@@ -18,6 +18,7 @@
 
 	<name>Sed Track</name>
 	<description>None</description>
+        <url>http://mycompany.com/exw599/sedtrack/</url>
 	<inceptionYear>2018</inceptionYear>
 	<organization>
 		<name>Queen Mary University of London</name>
@@ -43,7 +44,13 @@
 			</roles>
 		</developer>
 	</developers>
-
+        <contributors>
+                <contributor>
+                    <name>Chuan Gu</name>
+                    <roles><role>founder</role></roles>
+                </contributor>
+        </contributors>
+        
 	<scm>
 		<connection>scm:git:git://github.com/exw599/fiji-sedtrack</connection>
 		<developerConnection>scm:git:exw599@github.com:exw599/fiji-sedtrack</developerConnection>
@@ -51,6 +58,12 @@
 		<url>https://github.com/exw599/fiji-sedtrack</url>
 	</scm>
 	
+        <mailingLists>
+		<mailingList>
+			<name>Image.sc Forum</name>
+			<archive>https://forum.image.sc/</archive>
+		</mailingList>
+	</mailingLists>
 
 	<properties>
 		<package-name>com.mycompany.imagej</package-name>
@@ -58,6 +71,14 @@
 		<license.licenseName>bsd_2</license.licenseName>
 		<license.copyrightOwners>exw599</license.copyrightOwners>
 	</properties>
+        
+        <issueManagement>
+		<system>GitHub Issues</system>
+		<url>https://github.com/imagej/example-legacy-plugin/issues</url>
+	</issueManagement>
+	<ciManagement>
+		<system>None</system>
+	</ciManagement>
 
 	<dependencies>
 		<dependency>
