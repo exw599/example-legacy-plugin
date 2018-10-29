@@ -9,9 +9,7 @@
 package com.mycompany.imagej;
 
 import ij.IJ;
-import ij.ImageJ;
 import ij.ImagePlus;
-import ij.gui.GenericDialog;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 
@@ -29,8 +27,7 @@ public class SedTrack implements PlugInFilter {
 	private int height;
 
 	// plugin parameters
-	public double value;
-	public String name;
+	public double value = 255;
 
 	@Override
 	public int setup(String arg, ImagePlus imp) {
@@ -49,30 +46,10 @@ public class SedTrack implements PlugInFilter {
 		width = ip.getWidth();
 		height = ip.getHeight();
 
-		if (showDialog()) {
-			process(ip);
-			image.updateAndDraw();
-		}
+		process(ip);
+		image.updateAndDraw();
 	}
-
-	private boolean showDialog() {
-		GenericDialog gd = new GenericDialog("Process pixels");
-
-		// default value is 0.00, 2 digits right of the decimal point
-		gd.addNumericField("value", 0.00, 2);
-		gd.addStringField("name", "John");
-
-		gd.showDialog();
-		if (gd.wasCanceled())
-			return false;
-
-		// get entered values
-		value = gd.getNextNumber();
-		name = gd.getNextString();
-
-		return true;
-	}
-
+        
 	/**
 	 * Process an image.
 	 * <p>
@@ -146,11 +123,11 @@ public class SedTrack implements PlugInFilter {
 	// processing of COLOR_RGB images
 	public void process(int[] pixels) {
 		for (int y=0; y < height; y++) {
-			for (int x=0; x < width; x++) {
-				// process each pixel of the line
-				// example: add 'number' to each pixel
-				pixels[x + y * width] += (int)value;
-			}
+                for (int x=0; x < width;  x++) {
+			// process each pixel of the line
+			// example: add 'number' to each pixel
+			pixels[x + y * width] += (int)value;
+		}
 		}
 	}
 
@@ -172,8 +149,8 @@ public class SedTrack implements PlugInFilter {
 		// set the plugins.dir property to make the plugin appear in the Plugins menu
 		Class<?> clazz = SedTrack.class;
 		
-            // start ImageJ
-            ImageJ imageJ = new ImageJ();
+                // start ImageJ
+                ImageJ imageJ = new ImageJ();
 
 		// open the Clown sample
 		ImagePlus image = IJ.openImage("http://imagej.net/images/clown.jpg");
