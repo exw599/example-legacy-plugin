@@ -171,12 +171,9 @@ public class SedTrack implements PlugInFilter {
 	public static void main(String[] args) {
 		// set the plugins.dir property to make the plugin appear in the Plugins menu
 		Class<?> clazz = SedTrack.class;
-		String url = clazz.getResource("/" + clazz.getName().replace('.', '/') + ".class").toString();
-		String pluginsDir = url.substring("file:".length(), url.length() - clazz.getName().length() - ".class".length());
-		System.setProperty("plugins.dir", pluginsDir);
-
-		// start ImageJ
-		new ImageJ();
+		
+            // start ImageJ
+            ImageJ imageJ = new ImageJ();
 
 		// open the Clown sample
 		ImagePlus image = IJ.openImage("http://imagej.net/images/clown.jpg");
