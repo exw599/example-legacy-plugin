@@ -1,9 +1,6 @@
 /*
- * To the extent possible under law, the ImageJ developers have waived
- * all copyright and related or neighboring rights to this tutorial code.
- *
- * See the CC0 1.0 Universal license for details:
- *     http://creativecommons.org/publicdomain/zero/1.0/
+ * This plugin is developed for tracking speed, size and shape of settling flocs
+ * from a series of 2D motion images
  */
 
 package com.mycompany.imagej;
@@ -18,7 +15,7 @@ import ij.process.ImageProcessor;
  * A template for processing each pixel of either
  * GRAY8, GRAY16, GRAY32 or COLOR_RGB images.
  *
- * @author Johannes Schindelin
+ * @author Chuan Gu
  */
 public class SedTrack implements PlugInFilter {
 	protected ImagePlus image;
@@ -28,7 +25,7 @@ public class SedTrack implements PlugInFilter {
 	private int height;
 
 	// plugin parameters
-	public double value = 255;
+	public double value = 100;
 
 	@Override
 	public int setup(String arg, ImagePlus imp) {
@@ -81,44 +78,46 @@ public class SedTrack implements PlugInFilter {
 			process( (short[]) ip.getPixels() );
 		else if (type == ImagePlus.GRAY32)
 			process( (float[]) ip.getPixels() );
-		else if (type == ImagePlus.COLOR_RGB)
-			process( (int[]) ip.getPixels() );
 		else {
-			throw new RuntimeException("not supported");
+			throw new RuntimeException("Image format not supported");
 		}
 	}
 
 	// processing of GRAY8 images
 	public void process(byte[] pixels) {
 		for (int y=0; y < height; y++) {
-			for (int x=0; x < width; x++) {
-				// process each pixel of the line
-				// example: add 'number' to each pixel
-				pixels[x + y * width] += (byte)value;
-			}
+		for (int x=0; x < width; x++) {
+                    // process each pixel of the line
+                    // example: add 'number' to each pixel
+                    pixels[x + y * width] += (byte)value;
 		}
+		}
+                
+                System.out.println("Hello, World");
 	}
 
 	// processing of GRAY16 images
 	public void process(short[] pixels) {
 		for (int y=0; y < height; y++) {
-			for (int x=0; x < width; x++) {
-				// process each pixel of the line
-				// example: add 'number' to each pixel
-				pixels[x + y * width] += (short)value;
-			}
+		for (int x=0; x < width;  x++) {
+                    // process each pixel of the line
+                    // example: add 'number' to each pixel
+                    pixels[x + y * width] += (short)value;
 		}
+		}
+                System.out.println("Hello, World");
 	}
 
 	// processing of GRAY32 images
 	public void process(float[] pixels) {
 		for (int y=0; y < height; y++) {
-			for (int x=0; x < width; x++) {
-				// process each pixel of the line
-				// example: add 'number' to each pixel
-				pixels[x + y * width] += (float)value;
-			}
+		for (int x=0; x < width;  x++) {
+			// process each pixel of the line
+			// example: add 'number' to each pixel
+			pixels[x + y * width] += (float)value;
 		}
+		}
+                System.out.println("Hello, World");
 	}
 
 	// processing of COLOR_RGB images
@@ -130,11 +129,12 @@ public class SedTrack implements PlugInFilter {
 			pixels[x + y * width] += (int)value;
 		}
 		}
+                System.out.println("Hello, World");
 	}
 
 	public void showAbout() {
-		IJ.showMessage("ProcessPixels",
-			"a template for processing each pixel of an image"
+		IJ.showMessage("SedTrack",
+			"Tracking settling flocs from 2D motion images"
 		);
 	}
 
@@ -154,8 +154,8 @@ public class SedTrack implements PlugInFilter {
                 ImageJ imageJ = new ImageJ();
 
 		// open the Clown sample
-		ImagePlus image = IJ.openImage("http://imagej.net/images/clown.jpg");
-		image.show();
+		ImagePlus image = IJ.openImage("/Users/chuangu/Desktop/sample");
+		//image.show();
 
 		// run the plugin
 		IJ.runPlugIn(clazz.getName(), "");
