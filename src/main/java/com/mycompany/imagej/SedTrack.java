@@ -7,6 +7,7 @@ package com.mycompany.imagej;
 
 import ij.IJ;
 import ij.ImagePlus;
+import ij.plugin.FolderOpener;
 import ij.ImageJ;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
@@ -18,6 +19,7 @@ import ij.process.ImageProcessor;
  * @author Chuan Gu
  */
 public class SedTrack implements PlugInFilter {
+    
 	protected ImagePlus image;
 
 	// image property members
@@ -33,8 +35,8 @@ public class SedTrack implements PlugInFilter {
 			showAbout();
 			return DONE;
 		}
-
-		image = imp;
+   		
+                image = imp;
 		return DOES_8G | DOES_16 | DOES_32 | DOES_RGB;
 	}
 
@@ -43,9 +45,9 @@ public class SedTrack implements PlugInFilter {
 		// get width and height
 		width = ip.getWidth();
 		height = ip.getHeight();
-
-		process(ip);
-		image.updateAndDraw();
+                System.out.println("getlicenumber = "+ip.getSliceNumber());
+		process(image);
+		//image.updateAndDraw();
 	}
         
 	/**
@@ -64,14 +66,18 @@ public class SedTrack implements PlugInFilter {
 	 * @param image the image (possible multi-dimensional)
 	 */
 	public void process(ImagePlus image) {
+                System.out.println("The stack size ="+image.getStackSize());
+                
 		// slice numbers start with 1 for historical reasons
-		for (int i = 1; i <= image.getStackSize(); i++)
-			process(image.getStack().getProcessor(i));
+		for (int i = 1; i <= image.getStackSize(); i++) 
+                    process(image.getStack().getProcessor(i));
 	}
 
 	// Select processing method depending on image type
 	public void process(ImageProcessor ip) {
+
 		int type = image.getType();
+                
 		if (type == ImagePlus.GRAY8)
 			process( (byte[]) ip.getPixels() );
 		else if (type == ImagePlus.GRAY16)
@@ -86,14 +92,14 @@ public class SedTrack implements PlugInFilter {
 	// processing of GRAY8 images
 	public void process(byte[] pixels) {
 		for (int y=0; y < height; y++) {
-		for (int x=0; x < width; x++) {
+		for (int x=0; x < width;  x++) {
                     // process each pixel of the line
                     // example: add 'number' to each pixel
                     pixels[x + y * width] += (byte)value;
 		}
 		}
                 
-                System.out.println("Hello, World");
+                System.out.println("GRAY8");
 	}
 
 	// processing of GRAY16 images
@@ -105,7 +111,7 @@ public class SedTrack implements PlugInFilter {
                     pixels[x + y * width] += (short)value;
 		}
 		}
-                System.out.println("Hello, World");
+                System.out.println("GRAY16");
 	}
 
 	// processing of GRAY32 images
@@ -117,7 +123,7 @@ public class SedTrack implements PlugInFilter {
 			pixels[x + y * width] += (float)value;
 		}
 		}
-                System.out.println("Hello, World");
+                System.out.println("GRAY32");
 	}
 
 	// processing of COLOR_RGB images
@@ -129,7 +135,7 @@ public class SedTrack implements PlugInFilter {
 			pixels[x + y * width] += (int)value;
 		}
 		}
-                System.out.println("Hello, World");
+                System.out.println("RGB");
 	}
 
 	public void showAbout() {
@@ -151,11 +157,11 @@ public class SedTrack implements PlugInFilter {
 		Class<?> clazz = SedTrack.class;
 		
                 // start ImageJ
-                ImageJ imageJ = new ImageJ();
+                //ImageJ imageJ = new ImageJ();
 
 		// open the Clown sample
-		ImagePlus image = IJ.openImage("/Users/chuangu/Desktop/sample");
-		//image.show();
+		ImagePlus image = FolderOpener.open("/Users/chuangu/Desktop/sample");
+		image.show();
 
 		// run the plugin
 		IJ.runPlugIn(clazz.getName(), "");
