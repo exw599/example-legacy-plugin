@@ -15,7 +15,6 @@ import ij.process.ImageProcessor;
 /**
  * A template for processing each pixel of either
  * GRAY8, GRAY16, GRAY32 or COLOR_RGB images.
- *
  * @author Chuan Gu
  */
 public class SedTrack implements PlugInFilter {
