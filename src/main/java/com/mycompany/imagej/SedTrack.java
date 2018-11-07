@@ -49,7 +49,7 @@ public class SedTrack implements PlugInFilter {
 		process(image);
 		//image.updateAndDraw();
 	}
-        
+                     
 	/**
 	 * Process an image.
 	 * <p>
@@ -95,9 +95,7 @@ public class SedTrack implements PlugInFilter {
 	public void process(byte[] pixels) {
 		for (int y=0; y < height; y++) {
 		for (int x=0; x < width;  x++) {
-                    // process each pixel of the line
-                    // example: add 'number' to each pixel
-                    pixels[x + y * width] += (byte)value;
+                                                pixels[x + y * width] += (byte)value;
 		}
 		}
                 
