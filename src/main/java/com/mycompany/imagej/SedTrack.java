@@ -21,10 +21,10 @@ import ij.process.ImageProcessor;
 public class SedTrack implements PlugInFilter {
     
 	protected ImagePlus image;
-
-	// image property members
+        
 	private int width;
-	private int height;
+	
+                     private int height;
 
 	// plugin parameters
 	public double value = 100;
@@ -36,7 +36,7 @@ public class SedTrack implements PlugInFilter {
 			return DONE;
 		}
    		
-                image = imp;
+                                           image = imp;
 		return DOES_8G | DOES_16 | DOES_32 | DOES_RGB;
 	}
 
@@ -45,7 +45,7 @@ public class SedTrack implements PlugInFilter {
 		// get width and height
 		width = ip.getWidth();
 		height = ip.getHeight();
-                System.out.println("getlicenumber = "+ip.getSliceNumber());
+                                           System.out.println("Image Size = "+width+"x"+height);
 		process(image);
 		//image.updateAndDraw();
 	}
@@ -66,12 +66,14 @@ public class SedTrack implements PlugInFilter {
 	 * @param image the image (possible multi-dimensional)
 	 */
 	public void process(ImagePlus image) {
-                System.out.println("The stack size ="+image.getStackSize());
-                
-		// slice numbers start with 1 for historical reasons
-		for (int i = 1; i <= image.getStackSize(); i++) 
-                    process(image.getStack().getProcessor(i));
-	}
+                                           System.out.println("Processing ImagePlus");
+                                           System.out.println("The image stack has "+image.getStackSize()+" slices");
+		for (int i = 1; i <= image.getStackSize(); i++)
+                                           {
+                                                System.out.println("Processing slice"+i);
+                                                process(image.getStack().getProcessor(i));
+                                            }   
+                       }
 
 	// Select processing method depending on image type
 	public void process(ImageProcessor ip) {
@@ -129,7 +131,7 @@ public class SedTrack implements PlugInFilter {
 	// processing of COLOR_RGB images
 	public void process(int[] pixels) {
 		for (int y=0; y < height; y++) {
-                for (int x=0; x < width;  x++) {
+                                           for (int x=0; x < width;  x++) {
 			// process each pixel of the line
 			// example: add 'number' to each pixel
 			pixels[x + y * width] += (int)value;
@@ -139,9 +141,7 @@ public class SedTrack implements PlugInFilter {
 	}
 
 	public void showAbout() {
-		IJ.showMessage("SedTrack",
-			"Tracking settling flocs from 2D motion images"
-		);
+                        IJ.showMessage("SedTrack","Tracking settling flocs from 2D motion images");
 	}
 
 	/**
@@ -156,11 +156,11 @@ public class SedTrack implements PlugInFilter {
 		// set the plugins.dir property to make the plugin appear in the Plugins menu
 		Class<?> clazz = SedTrack.class;
 		
-                // start ImageJ
-                //ImageJ imageJ = new ImageJ();
+                                          // start ImageJ
+                                          ImageJ imageJ = new ImageJ();
 
-		// open the Clown sample
-		ImagePlus image = FolderOpener.open("/Users/chuangu/Desktop/sample");
+                                           ImagePlus image = FolderOpener.open("C:/Users/exw599/Desktop/sample");
+		//ImagePlus image = FolderOpener.open("/Users/chuangu/Desktop/sample");
 		image.show();
 
 		// run the plugin
