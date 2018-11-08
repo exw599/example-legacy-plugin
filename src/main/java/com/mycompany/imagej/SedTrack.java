@@ -70,7 +70,7 @@ public class SedTrack implements PlugInFilter {
             System.out.println("The image stack has "+image.getStackSize()+" slices");
 
             ImageConverter transform = new ImageConverter(image);
-            transform.convertToGray16();
+            transform.convertToGray8();
             
             for (int i = 1; i <= image.getStackSize(); i++){
                 System.out.println("Processing slice"+i);
@@ -81,39 +81,27 @@ public class SedTrack implements PlugInFilter {
 	// Select processing method depending on image type
 	public void process_ip(ImageProcessor ip) {
 
-		int type = image.getType();
-                
-		if (type == ImagePlus.GRAY8)
-                    process( (byte[])  ip.getPixels() );
-		else if (type == ImagePlus.GRAY16)
-                    process( (short[]) ip.getPixels() );
-		else {
-                    throw new RuntimeException("Image format not supported");
-		}
+            int type = image.getType();
+                    
+            if (type == ImagePlus.GRAY8)
+                process_pixel( (byte[]) ip.getPixels() );
+            else {
+                throw new RuntimeException("Image format not supported");
+            }
 	}
-
-	// processing of GRAY8 images
-	public void process(byte[] pixels) {
+        
+	// processing the pixels of the current ImageProcessor
+	public void process_pixel(byte[] pixels) {
+            
+                short max = -32768;
+                short min =  32767;
 		for (int y=0; y < height; y++) {
 		for (int x=0; x < width;  x++) {
-                    pixels[x + y * width] += (byte)value;
-                    pixels[x + y* width] = 0;
+                    if (pixels[x + y * width] > max) max = pixels[x+y*width];
+                    if (pixels[x + y * width] < min) min = pixels[x+y*width];
 		}
 		}
                 
-                System.out.println("GRAY8");
-	}
-
-	// processing of GRAY16 images
-	public void process(short[] pixels) {
-		for (int y=0; y < height; y++) {
-		for (int x=0; x < width;  x++) {
-                    // process each pixel of the line
-                    // example: add 'number' to each pixel
-                    pixels[x + y * width] += (short)value;
-		}
-		}
-                System.out.println("GRAY16");
 	}
 
 	/**
