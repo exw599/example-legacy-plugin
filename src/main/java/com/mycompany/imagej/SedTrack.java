@@ -80,28 +80,16 @@ public class SedTrack implements PlugInFilter {
 
 	// Select processing method depending on image type
 	public void process_ip(ImageProcessor ip) {
-
-            int type = image.getType();
-                    
-            if (type == ImagePlus.GRAY8)
-                process_pixel( (byte[]) ip.getPixels() );
-            else {
-                throw new RuntimeException("Image format not supported");
-            }
-	}
-        
-	// processing the pixels of the current ImageProcessor
-	public void process_pixel(byte[] pixels) {
             
-                short max = -32768;
-                short min =  32767;
-		for (int y=0; y < height; y++) {
-		for (int x=0; x < width;  x++) {
-                    if (pixels[x + y * width] > max) max = pixels[x+y*width];
-                    if (pixels[x + y * width] < min) min = pixels[x+y*width];
-		}
-		}
-                
+            byte[] pixels = (byte[]) ip.getPixels();
+            byte max = -100;
+            byte min =  100;
+            for (int y=0; y < height; y++) {
+            for (int x=0; x < width;  x++) {
+                if (pixels[x + y * width] > max) max = pixels[x+y*width];
+                if (pixels[x + y * width] < min) min = pixels[x+y*width];
+            }
+            }
 	}
 
 	/**
