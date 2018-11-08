@@ -40,8 +40,9 @@ public class SedTrack implements PlugInFilter {
             width = ip.getWidth();
             height = ip.getHeight();
             System.out.println("Image Size = "+width+"x"+height);
-            process_imageplus(image);
+            //process_imageplus(image);
             //image.updateAndDraw();
+            Sobel_operator(ip);
 	}
                      
 	/**
@@ -63,9 +64,9 @@ public class SedTrack implements PlugInFilter {
             System.out.println("Processing ImagePlus");
             System.out.println("The image stack has "+image.getStackSize()+" slices");
             
-            if (image.getType() != ImagePlus.GRAY8) {
+            if (image.getType() != ImagePlus.GRAY16) {
                 ImageConverter transform = new ImageConverter(image);
-                transform.convertToGray8();
+                transform.convertToGray16();
             }
             
             for (int i = 1; i <= image.getStackSize(); i++){
@@ -77,9 +78,9 @@ public class SedTrack implements PlugInFilter {
 	// Select processing method depending on image type
 	public void process_ip(ImageProcessor ip) {
             
-            byte[] pixels = (byte[]) ip.getPixels();
-            byte max = 0;
-            byte min = 0; 
+            short[] pixels = (short[]) ip.getPixels();
+            short max = 0;
+            short min = 0;
             
             for (int y=0; y < height; y++) {
             for (int x=0; x < width;  x++) {
@@ -93,8 +94,45 @@ public class SedTrack implements PlugInFilter {
                 if (pixels[x+y*width] < min) min = pixels[x+y*width];
             }
             }
-	}
-
+            
+            for (int y=0; y < height; y++) {
+            for (int x=0; x < width;  x++) {
+                if (pixels[x+y*width] > min + (max-min) * 0.9 ) pixels[x+y*width] = 255;    
+            }
+            }
+        }
+        
+        public void Sobel_operator(ImageProcessor ip) {
+            
+            ImagePlus grad = IJ.createImage("Sobel_operator", width, height, 1, 8);
+            ImageProcessor grad_ip = grad.getProcessor();
+            byte[] grad_pixels = (byte[]) grad_ip.getPixels();
+            byte[] pixels = (byte[]) ip.getPixels();
+            
+            byte gradx, grady;
+            
+            for (int y=1; y < height-1; y++) {
+            for (int x=1; x < width -1; x++) {
+                gradx = (byte) (2*pixels[x-1+    y*width] 
+                                 + pixels[x-1+(y-1)*width]
+                                 + pixels[x-1+(y+1)*width]
+                                -2*pixels[x+1+    y*width] 
+                                 - pixels[x+1+(y-1)*width]
+                                 - pixels[x+1+(y+1)*width]);
+                grad_pixels[x+y*width] = gradx;
+            }
+            }
+            
+            grad.show();
+            
+        }
+        
+        
+        
+        
+        
+        
+        
 	/**
 	 * Main method for debugging.
 	 */
