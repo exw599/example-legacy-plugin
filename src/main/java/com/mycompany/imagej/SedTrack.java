@@ -14,8 +14,6 @@ import ij.process.ImageProcessor;
 import ij.process.ImageConverter;
 
 /**
- * A template for processing each pixel of either
- * GRAY8, GRAY16, GRAY32
  * @author Chuan Gu
  */
 public class SedTrack implements PlugInFilter {
@@ -24,19 +22,15 @@ public class SedTrack implements PlugInFilter {
         
 	private int width;
 	
-                     private int height;
+        private int height;
 
-	// plugin parameters
 	public double value = 100;
 
 	@Override
 	public int setup(String arg, ImagePlus imp) {
-            if (arg.equals("about")) {
-                showAbout();
-                return DONE;
-            }
-   		
+            
             image = imp;
+            
             return DOES_8G | DOES_16 | DOES_32 | DOES_RGB;
 	}
 
@@ -75,8 +69,8 @@ public class SedTrack implements PlugInFilter {
             for (int i = 1; i <= image.getStackSize(); i++){
                 System.out.println("Processing slice"+i);
                 process_ip(image.getStack().getProcessor(i));
-            }   
-            }
+            }       
+        }
 
 	// Select processing method depending on image type
 	public void process_ip(ImageProcessor ip) {
