@@ -11,10 +11,11 @@ import ij.plugin.FolderOpener;
 import ij.ImageJ;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
+import ij.process.ImageConverter;
 
 /**
  * A template for processing each pixel of either
- * GRAY8, GRAY16, GRAY32 or COLOR_RGB images.
+ * GRAY8, GRAY16, GRAY32
  * @author Chuan Gu
  */
 public class SedTrack implements PlugInFilter {
@@ -30,23 +31,23 @@ public class SedTrack implements PlugInFilter {
 
 	@Override
 	public int setup(String arg, ImagePlus imp) {
-		if (arg.equals("about")) {
-			showAbout();
-			return DONE;
-		}
+            if (arg.equals("about")) {
+                showAbout();
+                return DONE;
+            }
    		
-                                           image = imp;
-		return DOES_8G | DOES_16 | DOES_32 | DOES_RGB;
+            image = imp;
+            return DOES_8G | DOES_16 | DOES_32 | DOES_RGB;
 	}
 
 	@Override
 	public void run(ImageProcessor ip) {
-		// get width and height
-		width = ip.getWidth();
-		height = ip.getHeight();
-                                           System.out.println("Image Size = "+width+"x"+height);
-		process(image);
-		//image.updateAndDraw();
+            // get width and height
+            width = ip.getWidth();
+            height = ip.getHeight();
+            System.out.println("Image Size = "+width+"x"+height);
+            process_imageplus(image);
+            //image.updateAndDraw();
 	}
                      
 	/**
@@ -64,29 +65,30 @@ public class SedTrack implements PlugInFilter {
 	 *
 	 * @param image the image (possible multi-dimensional)
 	 */
-	public void process(ImagePlus image) {
-                                           System.out.println("Processing ImagePlus");
-                                           System.out.println("The image stack has "+image.getStackSize()+" slices");
-		for (int i = 1; i <= image.getStackSize(); i++)
-                                           {
-                                                System.out.println("Processing slice"+i);
-                                                process(image.getStack().getProcessor(i));
-                                            }   
-                       }
+	public void process_imageplus(ImagePlus image) {
+            System.out.println("Processing ImagePlus");
+            System.out.println("The image stack has "+image.getStackSize()+" slices");
+
+            ImageConverter transform = new ImageConverter(image);
+            transform.convertToGray16();
+            
+            for (int i = 1; i <= image.getStackSize(); i++){
+                System.out.println("Processing slice"+i);
+                process_ip(image.getStack().getProcessor(i));
+            }   
+            }
 
 	// Select processing method depending on image type
-	public void process(ImageProcessor ip) {
+	public void process_ip(ImageProcessor ip) {
 
 		int type = image.getType();
                 
 		if (type == ImagePlus.GRAY8)
-			process( (byte[]) ip.getPixels() );
+                    process( (byte[])  ip.getPixels() );
 		else if (type == ImagePlus.GRAY16)
-			process( (short[]) ip.getPixels() );
-		else if (type == ImagePlus.GRAY32)
-			process( (float[]) ip.getPixels() );
+                    process( (short[]) ip.getPixels() );
 		else {
-			throw new RuntimeException("Image format not supported");
+                    throw new RuntimeException("Image format not supported");
 		}
 	}
 
@@ -94,8 +96,8 @@ public class SedTrack implements PlugInFilter {
 	public void process(byte[] pixels) {
 		for (int y=0; y < height; y++) {
 		for (int x=0; x < width;  x++) {
-                                                pixels[x + y * width] += (byte)value;
-                                                pixels[x + y* width] = 0;
+                    pixels[x + y * width] += (byte)value;
+                    pixels[x + y* width] = 0;
 		}
 		}
                 
@@ -114,54 +116,21 @@ public class SedTrack implements PlugInFilter {
                 System.out.println("GRAY16");
 	}
 
-	// processing of GRAY32 images
-	public void process(float[] pixels) {
-		for (int y=0; y < height; y++) {
-		for (int x=0; x < width;  x++) {
-			// process each pixel of the line
-			// example: add 'number' to each pixel
-			pixels[x + y * width] += (float)value;
-		}
-		}
-                System.out.println("GRAY32");
-	}
-
-	// processing of COLOR_RGB images
-	public void process(int[] pixels) {
-		for (int y=0; y < height; y++) {
-                                           for (int x=0; x < width;  x++) {
-			// process each pixel of the line
-			// example: add 'number' to each pixel
-			pixels[x + y * width] += (int)value;
-		}
-		}
-                System.out.println("RGB");
-	}
-
-	public void showAbout() {
-                        IJ.showMessage("SedTrack","Tracking settling flocs from 2D motion images");
-	}
-
 	/**
 	 * Main method for debugging.
-	 *
-	 * For debugging, it is convenient to have a method that starts ImageJ, loads
-	 * an image and calls the plugin, e.g. after setting breakpoints.
-	 *
-	 * @param args unused
 	 */
 	public static void main(String[] args) {
-		// set the plugins.dir property to make the plugin appear in the Plugins menu
-		Class<?> clazz = SedTrack.class;
+            // set the plugins.dir property to make the plugin appear in the Plugins menu
+            Class<?> clazz = SedTrack.class;
 		
-                                          // start ImageJ
-                                          ImageJ imageJ = new ImageJ();
+            // start ImageJ
+            ImageJ imageJ = new ImageJ();
 
-                                           ImagePlus image = FolderOpener.open("C:/Users/exw599/Desktop/sample");
-		//ImagePlus image = FolderOpener.open("/Users/chuangu/Desktop/sample");
-		image.show();
+            //ImagePlus image = FolderOpener.open("C:/Users/exw599/Desktop/sample");
+            ImagePlus image = FolderOpener.open("/Users/chuangu/Desktop/sample");
+            image.show();
 
-		// run the plugin
-		IJ.runPlugIn(clazz.getName(), "");
+            // run the plugin
+            IJ.runPlugIn(clazz.getName(), "");
 	}
 }
