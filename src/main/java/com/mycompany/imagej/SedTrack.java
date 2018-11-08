@@ -62,9 +62,11 @@ public class SedTrack implements PlugInFilter {
 	public void process_imageplus(ImagePlus image) {
             System.out.println("Processing ImagePlus");
             System.out.println("The image stack has "+image.getStackSize()+" slices");
-
-            ImageConverter transform = new ImageConverter(image);
-            transform.convertToGray8();
+            
+            if (image.getType() != ImagePlus.GRAY8) {
+                ImageConverter transform = new ImageConverter(image);
+                transform.convertToGray8();
+            }
             
             for (int i = 1; i <= image.getStackSize(); i++){
                 System.out.println("Processing slice"+i);
@@ -75,9 +77,10 @@ public class SedTrack implements PlugInFilter {
 	// Select processing method depending on image type
 	public void process_ip(ImageProcessor ip) {
             
-            byte[] pixels = (byte[]) ip.getPixels();
-            byte max = -100;
-            byte min =  100;
+            int[] pixels = (int[]) ip.getPixels();
+            int max = -99999;
+            int min =  99999;
+            
             for (int y=0; y < height; y++) {
             for (int x=0; x < width;  x++) {
                 if (pixels[x + y * width] > max) max = pixels[x+y*width];
