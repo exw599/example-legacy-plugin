@@ -77,14 +77,20 @@ public class SedTrack implements PlugInFilter {
 	// Select processing method depending on image type
 	public void process_ip(ImageProcessor ip) {
             
-            int[] pixels = (int[]) ip.getPixels();
-            int max = -99999;
-            int min =  99999;
+            byte[] pixels = (byte[]) ip.getPixels();
+            byte max = 0;
+            byte min = 0; 
             
             for (int y=0; y < height; y++) {
             for (int x=0; x < width;  x++) {
-                if (pixels[x + y * width] > max) max = pixels[x+y*width];
-                if (pixels[x + y * width] < min) min = pixels[x+y*width];
+                if (x==0 && y == 0){
+                    max = pixels[x+y*width];
+                    min = pixels[x+y*width];
+                    continue;
+                }
+                
+                if (pixels[x+y*width] > max) max = pixels[x+y*width];
+                if (pixels[x+y*width] < min) min = pixels[x+y*width];
             }
             }
 	}
