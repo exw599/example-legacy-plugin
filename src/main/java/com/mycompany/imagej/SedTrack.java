@@ -12,7 +12,7 @@ import ij.ImageJ;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 import ij.process.ImageConverter;
-import ij.process.ByteProcessor;
+import java.lang.Math;
 
 /**
 * @author Chuan Gu
@@ -99,25 +99,22 @@ if (pixels[x+y*width] > min + (max-min) * 0.9 ) pixels[x+y*width] = 255;
 
 public void Sobel_operator(ImageProcessor ip) {
 
-ByteProcessor ip_byte = ij.process.BinaryProcessor(ip,true);
 ImagePlus grad = IJ.createImage("Sobel_operator", width, height, 1, 8);
 ImageProcessor grad_ip = grad.getProcessor();
 
 byte[] grad_pixels = (byte[]) grad_ip.getPixels();
 byte[] pixels = (byte[]) ip.getPixels();
 
-byte gradx, grady;
-
 for (int y=1; y < height-1; y++) {
 for (int x=1; x < width -1; x++) {
-gradx = (byte) (pixels[x-1+y*width] - pixels[x+1+y*width]);
+grad_pixels[x+y*width]  =  (byte) (255-Math.abs((pixels[x-1+y*width]&0xFF) - (pixels[x+1+y*width]&0xFF)));
+//grad_pixels[x+y*width] = pixels[x+y*width];
               /* +pixels[x-1+(y-1)*width]
                    +pixels[x-1+(y+1)*width]
                -2*pixels[x+1+ y*width] 
                     -pixels[x+1+(y-1)*width]
                     -pixels[x+1+(y+1)*width]);
                */
-grad_pixels[x+y*width] = gradx;
 }
 }
 
