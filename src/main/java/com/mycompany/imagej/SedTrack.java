@@ -37,23 +37,13 @@ height = ip.getHeight();
 System.out.println("Image Size = "+width+"x"+height);
 //process_imageplus(image);
 //image.updateAndDraw();
+threashold(ip);
 Sobel_operator(ip);
 }
 
 /**
-* Process an image.
-* <p>
-* Please provide this method even if {@link ij.plugin.filter.PlugInFilter} does require it;
-* the method {@link ij.plugin.filter.PlugInFilter#run(ij.process.ImageProcessor)} can only
-* handle 2-dimensional data.
-* </p>
-* <p>
-* If your plugin does not change the pixels in-place, make this method return the results and
-* change the {@link #setup(java.lang.String, ij.ImagePlus)} method to return also the
-* <i>DOES_NOTHING</i> flag.
-* </p>
-*
-* @param image the image (possible multi-dimensional)
+* Process an image
+* @param image
 */
 public void process_imageplus(ImagePlus image) {
 System.out.println("Processing ImagePlus");
@@ -73,26 +63,26 @@ threashold(image.getStack().getProcessor(i));
 // Select processing method depending on image type
 public void threashold(ImageProcessor ip) {
 
-short[] pixels = (short[]) ip.getPixels();
-short max = 0;
-short min = 0;
+byte[] pixels = (byte[]) ip.getPixels();
+int max = 0;
+int min = 0;
 
 for (int y=0; y < height; y++) {
 for (int x=0; x < width;  x++) {
 if (x==0 && y == 0){
-max = pixels[x+y*width];
-min = pixels[x+y*width];
+max = pixels[x+y*width]&0xff;
+min = pixels[x+y*width]&0xff;
 continue;
 }
 
-if (pixels[x+y*width] > max) max = pixels[x+y*width];
-if (pixels[x+y*width] < min) min = pixels[x+y*width];
+if ( (pixels[x+y*width]&0xff) > max) max = pixels[x+y*width]&0xff;
+if ( (pixels[x+y*width]&0xff) < min) min = pixels[x+y*width]&0xff;
 }
 }
 
 for (int y=0; y < height; y++) {
 for (int x=0; x < width;  x++) {
-if (pixels[x+y*width] > min + (max-min) * 0.9 ) pixels[x+y*width] = 255;    
+if ( (pixels[x+y*width]&0xff) > min + (max-min) * 0.9 ) pixels[x+y*width] = (byte) 255;    
 }
 }
 }
@@ -105,16 +95,28 @@ ImageProcessor grad_ip = grad.getProcessor();
 byte[] grad_pixels = (byte[]) grad_ip.getPixels();
 byte[] pixels = (byte[]) ip.getPixels();
 
+int grad_x;
+int grad_y;
+
 for (int y=1; y < height-1; y++) {
 for (int x=1; x < width -1; x++) {
-grad_pixels[x+y*width]  =  (byte) (255-Math.abs((pixels[x-1+y*width]&0xFF) - (pixels[x+1+y*width]&0xFF)));
-//grad_pixels[x+y*width] = pixels[x+y*width];
-              /* +pixels[x-1+(y-1)*width]
-                   +pixels[x-1+(y+1)*width]
-               -2*pixels[x+1+ y*width] 
-                    -pixels[x+1+(y-1)*width]
-                    -pixels[x+1+(y+1)*width]);
-               */
+        
+grad_x=(2*pixels[x-1+    y*width]&0xFF
+         +pixels[x-1+(y-1)*width]&0xFF
+         +pixels[x-1+(y+1)*width]&0xFF
+       -2*pixels[x+1+    y*width]&0xFF 
+         -pixels[x+1+(y-1)*width]&0xFF
+         -pixels[x+1+(y+1)*width]&0xFF);
+
+grad_y=(2*pixels[x  +(y+1)*width]&0xFF
+         +pixels[x-1+(y+1)*width]&0xFF
+         +pixels[x+1+(y+1)*width]&0xFF
+       -2*pixels[x  +(y-1)*width]&0xFF
+         -pixels[x-1+(y-1)*width]&0xFF
+         -pixels[x+1+(y-1)*width]&0xFF);
+
+grad_pixels[x+y*width] = (byte) Math.sqrt(grad_x*grad_x + grad_y*grad_y);
+
 }
 }
 
@@ -131,8 +133,8 @@ Class<?> clazz = SedTrack.class;
 
 ImageJ imageJ = new ImageJ();
 
-ImagePlus image = FolderOpener.open("C:/Users/exw599/Desktop/sample");
-//ImagePlus image = FolderOpener.open("/Users/chuangu/Desktop/sample");
+//ImagePlus image = FolderOpener.open("C:/Users/exw599/Desktop/sample");
+ImagePlus image = FolderOpener.open("/Users/chuangu/Desktop/sample");
 image.show();
 
 // run the plugin
