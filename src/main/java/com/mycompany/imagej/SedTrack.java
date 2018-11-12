@@ -89,10 +89,10 @@ if ( (pixels[x+y*width]&0xff) > min + (max-min) * 0.9 ) pixels[x+y*width] = (byt
 
 public void Sobel_operator(ImageProcessor ip) {
 
-ImagePlus grad = IJ.createImage("Sobel_operator", width, height, 1, 8);
+ImagePlus grad = IJ.createImage("Sobel_operator", width, height, 1, 32);
 ImageProcessor grad_ip = grad.getProcessor();
 
-byte[] grad_pixels = (byte[]) grad_ip.getPixels();
+float[] grad_pixels = (float[]) grad_ip.getPixels();
 byte[] pixels = (byte[]) ip.getPixels();
 
 int grad_x;
@@ -100,22 +100,22 @@ int grad_y;
 
 for (int y=1; y < height-1; y++) {
 for (int x=1; x < width -1; x++) {
-        
-grad_x=(2*pixels[x-1+    y*width]&0xFF
-         +pixels[x-1+(y-1)*width]&0xFF
-         +pixels[x-1+(y+1)*width]&0xFF
-       -2*pixels[x+1+    y*width]&0xFF 
-         -pixels[x+1+(y-1)*width]&0xFF
-         -pixels[x+1+(y+1)*width]&0xFF);
 
-grad_y=(2*pixels[x  +(y+1)*width]&0xFF
-         +pixels[x-1+(y+1)*width]&0xFF
-         +pixels[x+1+(y+1)*width]&0xFF
-       -2*pixels[x  +(y-1)*width]&0xFF
-         -pixels[x-1+(y-1)*width]&0xFF
-         -pixels[x+1+(y-1)*width]&0xFF);
+grad_x=(2*(pixels[x-1+    y*width]&0xFF)
+         +(pixels[x-1+(y-1)*width]&0xFF)
+         +(pixels[x-1+(y+1)*width]&0xFF)
+       -2*(pixels[x+1+    y*width]&0xFF) 
+         -(pixels[x+1+(y-1)*width]&0xFF)
+         -(pixels[x+1+(y+1)*width]&0xFF));
 
-grad_pixels[x+y*width] = (byte) Math.sqrt(grad_x*grad_x + grad_y*grad_y);
+grad_y=(2*(pixels[x  +(y-1)*width]&0xFF)
+         +(pixels[x-1+(y-1)*width]&0xFF)
+         +(pixels[x+1+(y-1)*width]&0xFF)
+       -2*(pixels[x  +(y+1)*width]&0xFF)
+         -(pixels[x-1+(y+1)*width]&0xFF)
+         -(pixels[x+1+(y+1)*width]&0xFF));
+
+grad_pixels[x+y*width] = (float) Math.abs(grad_x*grad_x + grad_y*grad_y);
 
 }
 }
