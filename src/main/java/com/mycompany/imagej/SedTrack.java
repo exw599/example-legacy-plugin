@@ -207,7 +207,8 @@ pixels[(int) pixel_scan.getX() + xx + ((int) pixel_scan.getY() + yy)*width] = (b
 }
 }
 } //while it.hasNext
-    
+
+//Calculating the mass, centre of mass, moment of inertia and radius of gyration of the floc_new
 for (Point2D.Double pts : floc_new.co) {
 floc_new.mass += (255.0 - ip.getPixel( (int) pts.getX(), (int) pts.getY()))/255.0;
 floc_new.cm.setLocation
@@ -216,6 +217,11 @@ floc_new.cm.setLocation
 }
 floc_new.cm.setLocation(floc_new.cm.getX()/floc_new.mass, floc_new.cm.getY()/floc_new.mass);
 
+for (Point2D.Double pts : floc_new.co) {
+floc_new.m2 += pts.distanceSq(floc_new.cm) * (255.0 - ip.getPixel( (int) pts.getX(), (int) pts.getY()))/255.0;    
+}
+
+floc_new.rg = floc_new.m2/floc_new.mass;
 
 floc_list_current.add(floc_new);
 
@@ -261,14 +267,14 @@ class floc {
 public double mass;
 public Point2D.Double cm;
 public double m2;
-public double r_g;
+public double rg;
 public List<Point2D.Double> co;
 
 public floc() {
 mass = 0.0;
 cm = new Point2D.Double(0.0, 0.0);
 m2 = 0.0;
-r_g = 0.0;
+rg = 0.0;
 co = new ArrayList<>();
 }
 
