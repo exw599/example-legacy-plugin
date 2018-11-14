@@ -28,12 +28,15 @@ private int width;
 
 private int height;
 
-private List<floc> floc_list;
+private List<floc> floc_list_storage;
+
+private List<floc> floc_list_current;
 
 @Override
 public int setup(String arg, ImagePlus imp) {
 image = imp;
-floc_list = new ArrayList<>();
+floc_list_storage = new ArrayList<>();
+floc_list_current = new ArrayList<>();
 return DOES_8G | DOES_16 | DOES_32 | DOES_RGB;
 }
 
@@ -52,6 +55,9 @@ Threashold(ip);
 Sorting(ip);
 //Sobel_operator(ip);
 }
+
+
+
 
 /**
 * Process an ImagePlus object (can be a single image or a stack of images)
@@ -76,7 +82,7 @@ Threashold(image.getStack().getProcessor(i));
 
 
 /*
-*Applying the threasholding operation
+*Applying the threasholding operation on the current ImageProcessor
 */
 public void Threashold(ImageProcessor ip) {
 
@@ -103,7 +109,7 @@ min = pixels[x + y * width] & 0xff;
 
 for (int y = 0; y < height; y++) {
 for (int x = 0; x < width; x++) {
-if ((pixels[x + y * width] & 0xff) > min + (max - min) * 0.95) {
+if ((pixels[x + y * width] & 0xff) > min + (max - min) * 0.9) {
 pixels[x + y * width] = (byte) 255;
 }
 }
@@ -114,6 +120,7 @@ pixels[x + y * width] = (byte) 255;
 
 /*
 *Applying the Sobel operation to calculate the magnitude of the first spatial derivative of the 2D image
+*The result is stored in ImagePlus "grad"
 */
 public void Sobel_operator(ImageProcessor ip) {
 
@@ -152,9 +159,12 @@ grad.show();
 
 }
 
+/*
+*Identify all the flocs within the currrent ImageProcessor and record them into floc_list_current
+*/
 public void Sorting(ImageProcessor ip) {
 
-byte[] pixels = (byte[]) ip.getPixels();
+byte[] pixels = (byte[]) ip.getPixelsCopy();
 
 List<Point2D.Double> front = new ArrayList<>();
 floc floc_new;
@@ -164,16 +174,18 @@ ListIterator<Point2D.Double> it;
 for (int y = 0; y < height; y++) {
 for (int x = 0; x < width; x++) {
 
-if ((pixels[x + y * width] & 0xff) < 255) {
+if ((pixels[x + y*width] & 0xff) < 255) {
+
 front.clear();
 floc_new = new floc();
 pixel_scan = new Point2D.Double(x, y);
 
 floc_new.co.add(pixel_scan);
 front.add(pixel_scan);
+pixels[x + y*width] = (byte) 255;
+
 
 it = front.listIterator();
-
 while (it.hasNext()) {
 
 pixel_scan = it.next();
@@ -186,7 +198,8 @@ if (pixel_scan.getY()+yy<0 || pixel_scan.getY()+yy>height) continue;
 
 
 if ((pixels[(int) pixel_scan.getX() + xx + ((int) pixel_scan.getY() + yy) * width] & 0xff) < 255) {
-         it.add(new Point2D.Double((int) pixel_scan.getX() + xx, (int) pixel_scan.getY() + yy));
+it.add(new Point2D.Double((int) pixel_scan.getX() + xx, (int) pixel_scan.getY() + yy));
+it.previous();
 floc_new.co.add(new Point2D.Double((int) pixel_scan.getX() + xx, (int) pixel_scan.getY() + yy));
 pixels[(int) pixel_scan.getX() + xx + ((int) pixel_scan.getY() + yy)*width] = (byte) 255;
 
@@ -194,8 +207,17 @@ pixels[(int) pixel_scan.getX() + xx + ((int) pixel_scan.getY() + yy)*width] = (b
 }
 }
 } //while it.hasNext
+    
+for (Point2D.Double pts : floc_new.co) {
+floc_new.mass += (255.0 - ip.getPixel( (int) pts.getX(), (int) pts.getY()))/255.0;
+floc_new.cm.setLocation
+        (floc_new.cm.getX() + pts.getX()*(255.0 - ip.getPixel( (int) pts.getX(), (int) pts.getY()))/255.0,
+         floc_new.cm.getY() + pts.getY()*(255.0 - ip.getPixel( (int) pts.getX(), (int) pts.getY()))/255.0);
+}
+floc_new.cm.setLocation(floc_new.cm.getX()/floc_new.mass, floc_new.cm.getY()/floc_new.mass);
 
-floc_list.add(floc_new);
+
+floc_list_current.add(floc_new);
 
 }// if pixel value < 255
 
@@ -237,12 +259,14 @@ IJ.runPlugIn(clazz.getName(), "");
 class floc {
 
 public double mass;
+public Point2D.Double cm;
 public double m2;
 public double r_g;
 public List<Point2D.Double> co;
 
 public floc() {
 mass = 0.0;
+cm = new Point2D.Double(0.0, 0.0);
 m2 = 0.0;
 r_g = 0.0;
 co = new ArrayList<>();
