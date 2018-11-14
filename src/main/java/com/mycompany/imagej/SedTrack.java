@@ -1,7 +1,7 @@
 /*
 * This plugin is developed for tracking speed, size and shape of settling flocs
 * from a series of 2D motion images
- */
+*/
 package com.mycompany.imagej;
 
 import ij.IJ;
@@ -18,203 +18,234 @@ import java.util.ArrayList;
 import java.util.ListIterator;
 
 /**
- * @author Chuan Gu
- */
+* @author Chuan Gu, SEMS, Queen Mary University of London
+*/
 public class SedTrack implements PlugInFilter {
 
-    protected ImagePlus image;
+protected ImagePlus image;
 
-    private int width;
+private int width;
 
-    private int height;
+private int height;
 
-    private List<floc> floc_list;
+private List<floc> floc_list;
 
-    @Override
-    public int setup(String arg, ImagePlus imp) {
-        image = imp;
-        return DOES_8G | DOES_16 | DOES_32 | DOES_RGB;
-    }
+@Override
+public int setup(String arg, ImagePlus imp) {
+image = imp;
+floc_list = new ArrayList<>();
+return DOES_8G | DOES_16 | DOES_32 | DOES_RGB;
+}
 
-    @Override
-    public void run(ImageProcessor ip) {
+@Override
+public void run(ImageProcessor ip) {
+
 // get width and height
-        width = ip.getWidth();
-        height = ip.getHeight();
-        System.out.println("Image Size = " + width + "x" + height);
+width = ip.getWidth();
+height = ip.getHeight();
+
+System.out.println("The image stack has " + image.getStackSize() + " slices");
+System.out.println("Image size = " + width + "x" + height);
+
 //process_imageplus(image);
-        Threashold(ip);
-        Sorting(ip);
+Threashold(ip);
+Sorting(ip);
 //Sobel_operator(ip);
-    }
+}
 
-    /**
-     * Process an image
-     *
-     * @param image
-     */
-    public void Process_imageplus(ImagePlus image) {
-        System.out.println("Processing ImagePlus");
-        System.out.println("The image stack has " + image.getStackSize() + " slices");
+/**
+* Process an ImagePlus object (can be a single image or a stack of images)
+* @param image
+*/
+public void Process_imageplus(ImagePlus image) {
 
-        if (image.getType() != ImagePlus.GRAY8) {
-            ImageConverter transform = new ImageConverter(image);
-            transform.convertToGray8();
-        }
+//Convert the ImagePlus to 8-bit if it is not
+if (image.getType() != ImagePlus.GRAY8) {
+ImageConverter transform = new ImageConverter(image);
+transform.convertToGray8();
+}
 
-        for (int i = 1; i <= image.getStackSize(); i++) {
-            System.out.println("Processing slice" + i);
-            Threashold(image.getStack().getProcessor(i));
-        }
-    }
+//Processing the image stack one slice by one slice
+for (int i = 1; i <= image.getStackSize(); i++) {
+System.out.println("Processing slice" + i);
+Threashold(image.getStack().getProcessor(i));
+}
 
-    public void Threashold(ImageProcessor ip) {
+} // End of Process_imageplus
 
-        byte[] pixels = (byte[]) ip.getPixels();
-        int max = 0;
-        int min = 0;
 
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                if (x == 0 && y == 0) {
-                    max = pixels[x + y * width] & 0xff;
-                    min = pixels[x + y * width] & 0xff;
-                    continue;
-                }
 
-                if ((pixels[x + y * width] & 0xff) > max) {
-                    max = pixels[x + y * width] & 0xff;
-                }
-                if ((pixels[x + y * width] & 0xff) < min) {
-                    min = pixels[x + y * width] & 0xff;
-                }
-            }
-        }
+/*
+*Applying the threasholding operation
+*/
+public void Threashold(ImageProcessor ip) {
 
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                if ((pixels[x + y * width] & 0xff) > min + (max - min) * 0.95) {
-                    pixels[x + y * width] = (byte) 255;
-                }
-            }
-        }
+byte[] pixels = (byte[]) ip.getPixels();
+int max = 0;
+int min = 0;
 
-    }
+for (int y = 0; y < height; y++) {
+for (int x = 0; x < width; x++) {
+if (x == 0 && y == 0) {
+max = pixels[x + y * width] & 0xff;
+min = pixels[x + y * width] & 0xff;
+continue;
+}
 
-    public void Sobel_operator(ImageProcessor ip) {
+if ((pixels[x + y * width] & 0xff) > max) {
+max = pixels[x + y * width] & 0xff;
+}
+if ((pixels[x + y * width] & 0xff) < min) {
+min = pixels[x + y * width] & 0xff;
+}
+}
+}
 
-        ImagePlus grad = IJ.createImage("Sobel_operator", width, height, 1, 32);
-        ImageProcessor grad_ip = grad.getProcessor();
+for (int y = 0; y < height; y++) {
+for (int x = 0; x < width; x++) {
+if ((pixels[x + y * width] & 0xff) > min + (max - min) * 0.95) {
+pixels[x + y * width] = (byte) 255;
+}
+}
+}
 
-        float[] grad_pixels = (float[]) grad_ip.getPixels();
-        byte[] pixels = (byte[]) ip.getPixels();
+}
 
-        int grad_x;
-        int grad_y;
 
-        for (int y = 1; y < height - 1; y++) {
-            for (int x = 1; x < width - 1; x++) {
+/*
+*Applying the Sobel operation to calculate the magnitude of the first spatial derivative of the 2D image
+*/
+public void Sobel_operator(ImageProcessor ip) {
 
-                grad_x = (2 * (pixels[x - 1 + y * width] & 0xFF)
-                        + (pixels[x - 1 + (y - 1) * width] & 0xFF)
-                        + (pixels[x - 1 + (y + 1) * width] & 0xFF)
-                        - 2 * (pixels[x + 1 + y * width] & 0xFF)
-                        - (pixels[x + 1 + (y - 1) * width] & 0xFF)
-                        - (pixels[x + 1 + (y + 1) * width] & 0xFF));
+ImagePlus grad = IJ.createImage("Sobel_operator", width, height, 1, 32);
+ImageProcessor grad_ip = grad.getProcessor();
 
-                grad_y = (2 * (pixels[x + (y - 1) * width] & 0xFF)
-                        + (pixels[x - 1 + (y - 1) * width] & 0xFF)
-                        + (pixels[x + 1 + (y - 1) * width] & 0xFF)
-                        - 2 * (pixels[x + (y + 1) * width] & 0xFF)
-                        - (pixels[x - 1 + (y + 1) * width] & 0xFF)
-                        - (pixels[x + 1 + (y + 1) * width] & 0xFF));
+float[] grad_pixels = (float[]) grad_ip.getPixels();
+byte[] pixels = (byte[]) ip.getPixels();
 
-                grad_pixels[x + y * width] = (float) Math.abs(grad_x * grad_x + grad_y * grad_y);
+int grad_x;
+int grad_y;
 
-            }
-        }
+for (int y = 1; y < height - 1; y++) {
+for (int x = 1; x < width - 1; x++) {
 
-        grad.show();
+grad_x = (2 * (pixels[x - 1 + y * width] & 0xFF)
++ (pixels[x - 1 + (y - 1) * width] & 0xFF)
++ (pixels[x - 1 + (y + 1) * width] & 0xFF)
+- 2 * (pixels[x + 1 + y * width] & 0xFF)
+- (pixels[x + 1 + (y - 1) * width] & 0xFF)
+- (pixels[x + 1 + (y + 1) * width] & 0xFF));
 
-    }
+grad_y = (2 * (pixels[x + (y - 1) * width] & 0xFF)
++ (pixels[x - 1 + (y - 1) * width] & 0xFF)
++ (pixels[x + 1 + (y - 1) * width] & 0xFF)
+- 2 * (pixels[x + (y + 1) * width] & 0xFF)
+- (pixels[x - 1 + (y + 1) * width] & 0xFF)
+- (pixels[x + 1 + (y + 1) * width] & 0xFF));
 
-    public void Sorting(ImageProcessor ip) {
+grad_pixels[x + y * width] = (float) Math.abs(grad_x * grad_x + grad_y * grad_y);
 
-        byte[] pixels = (byte[]) ip.getPixels();
+}
+}
 
-        List<Point2D.Double> front = new ArrayList<>();
-        floc floc_new;
-        Point2D.Double pixel_scan;
-        ListIterator<Point2D.Double> it;
+grad.show();
 
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
+}
 
-                if ((pixels[x + y * width] & 0xff) < 255) {
-                    front.clear();
-                    floc_new = new floc();
-                    pixel_scan = new Point2D.Double(x, y);
+public void Sorting(ImageProcessor ip) {
 
-                    floc_new.co.add(pixel_scan);
-                    front.add(pixel_scan);
+byte[] pixels = (byte[]) ip.getPixels();
 
-                    it = front.listIterator();
+List<Point2D.Double> front = new ArrayList<>();
+floc floc_new;
+Point2D.Double pixel_scan;
+ListIterator<Point2D.Double> it;
 
-                    while (it.hasNext()) {
+for (int y = 0; y < height; y++) {
+for (int x = 0; x < width; x++) {
 
-                        pixel_scan = it.next();
+if ((pixels[x + y * width] & 0xff) < 255) {
+front.clear();
+floc_new = new floc();
+pixel_scan = new Point2D.Double(x, y);
 
-                        for (int yy = -1; yy < 2; yy++) {
-                            for (int xx = -1; xx < 2; xx++) {
+floc_new.co.add(pixel_scan);
+front.add(pixel_scan);
 
-                                if ((pixels[(int) pixel_scan.getX() + xx + ((int) pixel_scan.getY() + yy) * width] & 0xff) < 255) {
-                                    it.add(new Point2D.Double((int) pixel_scan.getX() + xx, (int) pixel_scan.getY() + yy));
-                                    floc_new.co.add(new Point2D.Double((int) pixel_scan.getX() + xx, (int) pixel_scan.getY() + yy));
-                                    pixels[(int) pixel_scan.getX() + xx + ((int) pixel_scan.getY() + yy) * width] = (byte) 255;
-                                }
-                            }
-                        }
-                    } //while it.hasNext
+it = front.listIterator();
 
-                    floc_list.add(floc_new);
+while (it.hasNext()) {
 
-                }// if pixel value < 255
+pixel_scan = it.next();
 
-            }
-        }
+for (int yy = -1; yy < 2; yy++) {
+for (int xx = -1; xx < 2; xx++) {
 
-    }// end of the class Sorting
+if (pixel_scan.getX()+xx<0 || pixel_scan.getX()+xx>width ) continue;
+if (pixel_scan.getY()+yy<0 || pixel_scan.getY()+yy>height) continue;
 
-    /**
-     * Main method for debugging.
-     */
-    public static void main(String[] args) {
 
-        Class<?> clazz = SedTrack.class;
+if ((pixels[(int) pixel_scan.getX() + xx + ((int) pixel_scan.getY() + yy) * width] & 0xff) < 255) {
+         it.add(new Point2D.Double((int) pixel_scan.getX() + xx, (int) pixel_scan.getY() + yy));
+floc_new.co.add(new Point2D.Double((int) pixel_scan.getX() + xx, (int) pixel_scan.getY() + yy));
+pixels[(int) pixel_scan.getX() + xx + ((int) pixel_scan.getY() + yy)*width] = (byte) 255;
 
-        ImageJ imageJ = new ImageJ();
+}
+}
+}
+} //while it.hasNext
 
-//ImagePlus image = FolderOpener.open("C:/Users/exw599/Desktop/sample");
-        ImagePlus image = FolderOpener.open("/Users/chuangu/Desktop/sample");
-        image.show();
+floc_list.add(floc_new);
+
+}// if pixel value < 255
+
+}
+}
+
+}// end of the class Sorting
+
+
+
+
+
+
+
+/**
+* Main method for debugging.
+* @param args
+*/
+public static void main(String[] args) {
+
+Class<?> clazz = SedTrack.class;
+
+ImageJ imageJ = new ImageJ();
+
+ImagePlus image = FolderOpener.open("C:/Users/exw599/Desktop/sample");
+//ImagePlus image = FolderOpener.open("/Users/chuangu/Desktop/sample");
+image.show();
 
 // run the plugin
-        IJ.runPlugIn(clazz.getName(), "");
-    }
+IJ.runPlugIn(clazz.getName(), "");
+}
 }//End of the class SedTrack
 
+
+/*
+* Support class
+* Record each identified floc within the image
+*/
 class floc {
 
-    public double mass;
-    public double m2;
-    public double r_g;
-    public List<Point2D.Double> co;
+public double mass;
+public double m2;
+public double r_g;
+public List<Point2D.Double> co;
 
-    public floc() {
-        mass = 0.0;
-        m2 = 0.0;
-        r_g = 0.0;
-        co = new ArrayList<>();
-    }
+public floc() {
+mass = 0.0;
+m2 = 0.0;
+r_g = 0.0;
+co = new ArrayList<>();
+}
 
 }
