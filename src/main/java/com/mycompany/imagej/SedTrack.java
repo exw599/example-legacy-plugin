@@ -12,10 +12,8 @@ import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 import ij.process.ImageConverter;
 
-import java.lang.Math;
 import java.awt.geom.Point2D;
 import java.util.List;
-import java.util.Collections;
 import java.util.ArrayList;
 import java.util.ListIterator;
 
@@ -66,7 +64,7 @@ public class SedTrack implements PlugInFilter {
 
         for (int i = 1; i <= image.getStackSize(); i++) {
             System.out.println("Processing slice" + i);
-            threashold(image.getStack().getProcessor(i));
+            Threashold(image.getStack().getProcessor(i));
         }
     }
 
