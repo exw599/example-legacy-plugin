@@ -50,13 +50,9 @@ height = ip.getHeight();
 System.out.println("The image stack has " + image.getStackSize() + " slices");
 System.out.println("Image size = " + width + "x" + height);
 
-//process_imageplus(image);
-Threashold(ip);
-Sorting(ip);
-//Sobel_operator(ip);
+Process_imageplus(image);
+
 }
-
-
 
 
 /**
@@ -75,9 +71,14 @@ transform.convertToGray8();
 for (int i = 1; i <= image.getStackSize(); i++) {
 System.out.println("Processing slice" + i);
 Threashold(image.getStack().getProcessor(i));
+Sorting(image.getStack().getProcessor(i));
+Tracking(image.getStack().getProcessor(i));
 }
 
 } // End of Process_imageplus
+
+
+
 
 
 
@@ -109,7 +110,7 @@ min = pixels[x + y * width] & 0xff;
 
 for (int y = 0; y < height; y++) {
 for (int x = 0; x < width; x++) {
-if ((pixels[x + y * width] & 0xff) > min + (max - min) * 0.9) {
+if ((pixels[x + y * width] & 0xff) > min + (max - min) * 0.85) {
 pixels[x + y * width] = (byte) 255;
 }
 }
@@ -159,12 +160,14 @@ grad.show();
 
 }
 
+
 /*
 *Identify all the flocs within the currrent ImageProcessor and record them into floc_list_current
 */
 public void Sorting(ImageProcessor ip) {
 
 byte[] pixels = (byte[]) ip.getPixelsCopy();
+floc_list_current.clear();
 
 List<Point2D.Double> front = new ArrayList<>();
 floc floc_new;
@@ -193,19 +196,19 @@ pixel_scan = it.next();
 for (int yy = -1; yy < 2; yy++) {
 for (int xx = -1; xx < 2; xx++) {
 
-if (pixel_scan.getX()+xx<0 || pixel_scan.getX()+xx>width ) continue;
-if (pixel_scan.getY()+yy<0 || pixel_scan.getY()+yy>height) continue;
-
+if (pixel_scan.getX()+xx<0 || pixel_scan.getX()+xx>=width ) continue;
+if (pixel_scan.getY()+yy<0 || pixel_scan.getY()+yy>=height) continue;
 
 if ((pixels[(int) pixel_scan.getX() + xx + ((int) pixel_scan.getY() + yy) * width] & 0xff) < 255) {
 it.add(new Point2D.Double((int) pixel_scan.getX() + xx, (int) pixel_scan.getY() + yy));
 it.previous();
 floc_new.co.add(new Point2D.Double((int) pixel_scan.getX() + xx, (int) pixel_scan.getY() + yy));
 pixels[(int) pixel_scan.getX() + xx + ((int) pixel_scan.getY() + yy)*width] = (byte) 255;
+}
 
 }
 }
-}
+
 } //while it.hasNext
 
 //Calculating the mass, centre of mass, moment of inertia and radius of gyration of the floc_new
@@ -218,10 +221,10 @@ floc_new.cm.setLocation
 floc_new.cm.setLocation(floc_new.cm.getX()/floc_new.mass, floc_new.cm.getY()/floc_new.mass);
 
 for (Point2D.Double pts : floc_new.co) {
-floc_new.m2 += pts.distanceSq(floc_new.cm) * (255.0 - ip.getPixel( (int) pts.getX(), (int) pts.getY()))/255.0;    
+floc_new.m2 += pts.distanceSq(floc_new.cm) * (255.0 - ip.getPixel((int) pts.getX(), (int) pts.getY()))/255.0;
 }
 
-floc_new.rg = floc_new.m2/floc_new.mass;
+floc_new.rg = Math.sqrt(floc_new.m2/floc_new.mass);
 
 floc_list_current.add(floc_new);
 
@@ -232,7 +235,10 @@ floc_list_current.add(floc_new);
 
 }// end of the class Sorting
 
-
+public void Tracking(ImageProcessor ip){
+    
+floc_list_storage = new ArrayList<>(floc_list_current);    
+}
 
 
 
@@ -252,9 +258,10 @@ ImagePlus image = FolderOpener.open("C:/Users/exw599/Desktop/sample");
 //ImagePlus image = FolderOpener.open("/Users/chuangu/Desktop/sample");
 image.show();
 
-// run the plugin
+
 IJ.runPlugIn(clazz.getName(), "");
 }
+
 }//End of the class SedTrack
 
 
